@@ -59,6 +59,34 @@ describe("Basics", function () {
 				fn();
 			});
 		});
+
+		describe("Limited number of calls", function () {
+			var ee;
+			beforeEach(function () {
+				ee = new EventEmitter();
+			});
+
+			it("Should add one time listener", function () {
+				ee.once('test', function () {});
+				expect(ee.getListeners('test')).to.have.length(1);
+				expect(ee.getListeners('test')[0]).to.have.property('once', true);
+			});
+
+			it("Should execute added listener only once", function () {
+				var i = 0;
+				ee.once('test', function () {
+					i++;
+				});
+				ee.on('test', function () {
+					i++;
+				});
+				ee.emit('test');
+				expect(i).to.be.equal(2);
+				expect(ee.getListeners('test')).to.have.length(1);
+				ee.emit('test');
+				expect(i).to.be.equal(3);
+			});
+		});
 	});
 
 	describe("Emmiting events", function () {
