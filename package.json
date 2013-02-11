@@ -1,8 +1,8 @@
 {
-	"name": "EventEmitter NXT",
+	"name": "EventEmitter NG",
 	"version": "0.8",
 	"author": "Damian Sosnowski",
-	"description": "Advanced event emitter, allows bubbling and namespaced events names",
+	"description": "Advanced event emitter, supports bubbling and namespaced events names",
 	"main": "./index.js",
 	"keywords": [
 		"event",
@@ -10,7 +10,8 @@
 		"bubbling",
 		"namespace",
 		"listeners",
-		"events"
+		"events",
+		"eventemitter"
 	],
 	"devDependencies": {
 		"mocha": "1.8.1",
