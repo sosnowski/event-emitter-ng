@@ -9,6 +9,7 @@ Advanced JavaScript event emitter, allows bubbling and namespaced events
 
 ```javascript
 var ee = new EventEmitter();
+var ee2 = EventEmitter(); //will also work without "new" operator
 ```
 
 ###Adding listeners
@@ -37,10 +38,10 @@ ee.off(); //alias for removeEventListener
 ee.emit('eventName');
 ```
 
-You can pass additional arguments to listeners.
+You can pass additional arguments to listeners. Every listener receives event object as a first argument.
 
 ```javascript
-ee.on('eventName', function (arg1, arg2, arg3) {
+ee.on('eventName', function (eventObject, arg1, arg2, arg3) {
   
 });
 
@@ -97,16 +98,107 @@ ee.emit('test.smth.another'); //output: another
 
 ###Events declaration
 
-tbd
+By default all events are cancelable. Also, default events are not propagating (bubbling) to parent emitter.
+Behavior of specified events can be changed by passing proper config object to the constructor.
+
+```javascript
+var ee = new EventEmitter({
+ eventName: { //event "eventName" will be cancelable and bubbling
+  cancelable: true,
+  bubbling: true
+ },
+ eventName2: { //event will not be cancelable and wont propagate to parent emitter
+  cancelable: false,
+  bubbling: false
+ }
+});
+```
 
 ###Bubbling
 
-tbd
+When event is declared as "bubbling" it will be propagated to the parent emitter, after current emitter executes all its listeners.
+
+```javascript
+var ee = new EventEmitter({
+  'test': {
+     bubbling: true,
+     cancelable: true
+  }
+}), parent = new EventEmitter();
+
+ee.setParentEmitter(parent); //parent emitter has to be specified
+
+parent.on('test', function () {
+ console.log("I've bubbled!");
+});
+
+ee.on('test', function () {
+ console.log("I will be first");
+});
+
+ee.emit('test');
+```
 
 ###Canceling events
 
-tbd
+Events can be cancelled (unless it is set as non cancelable) using "cancel" method of event object that is passed to the listener
+
+```javascript
+var ee = new EventEmitter(); //events are cancelable by default so there is no need to pass configuration
+ee.on('test', function (eObj) {
+ console.log(1);
+});
+ee.on('test', function (eObj) {
+ console.log(2);
+ eObj.cancel();
+});
+ee.on('test', function (eObj) {
+ console.log(3);
+});
+ee.emit('test'); // will return: 1 2
+```
+Same effect will be achieved if listener returns false.
+Cancelled event will not bubble.
 
 ###Stopping propagation
 
-tbd
+Also propagation of an event can be stopped. Stopped event will not bubble to parent emitter.
+
+```javascript
+var ee = new EventEmitter({
+  'test': {
+     bubbling: true,
+     cancelable: true
+  }
+}), parent = new EventEmitter();
+
+ee.setParentEmitter(parent); //parent emitter has to be specified
+
+parent.on('test', function () {
+ console.log("2");
+});
+
+ee.on('test', function (eObj) {
+ console.log("1");
+ eObj.stopPropagation();
+});
+
+ee.emit('test'); //will display: 1
+```
+
+##EventObject
+
+EventObject is a simple object passed as a first argument to every listener.
+It provides methods for controlling event behavior and some usefull data about emitted event.
+
+###Methods:
+ - cancel() - cancels event, no more listeners will be executed
+ - stopPropagation() - stops propagation of an event, event will not bubble to parent emitter
+
+###Attributes:
+ - isBubbling - flag that indicates if event is configured as bubbling
+ - isCancelable - flag that indicates if event is configured as cancelable
+ - cancelled - true if event is cancelled (f.e. by cancel() method)
+ - stopped - true if event is stopped by stopPropagation() method
+ - name - name of emitted event
+ - target - the original emitter that has emitted this event
